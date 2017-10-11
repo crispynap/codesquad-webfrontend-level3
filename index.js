@@ -1,5 +1,9 @@
 var r = require('./config/readline')();
 
+var MINUTE = 1000 * 60;
+var HOUR = MINUTE * 60;
+var DAY = HOUR * 24;
+
 var tasks = {
 	taskList: [],
 	idPointer: 0,
@@ -7,7 +11,9 @@ var tasks = {
 		var task = {
 			id: this.idPointer,
 			name: name,
-			state: 'todo'
+			state: 'todo',
+			startTime: 0,
+			elapsedTime: 0
 		}
 		this.taskList.push(task);
 		this.idPointer++;
@@ -41,6 +47,24 @@ var tasks = {
 			}
 		}
 		console.log("현재상태: todo:" + todo + "개, doing:" + doing + "개, done:" + done + "개");
+	},
+	updateToDoing: function (taskId) {
+		try {
+			this.taskList[taskId].state = "doing";
+			this.taskList[taskId].startTime = new Date();
+		}
+		catch (e) {
+			console.log("id를 잘못 지정하였습니다.");
+		}
+	},
+	updateToDone: function (taskId) {
+		try {
+			this.taskList[taskId].state = "done";
+			this.taskList[taskId].elapsedTime = new Date().getTime() - this.taskList[taskId].startTime.getTime();
+		}
+		catch (e) {
+			console.log("id를 잘못 지정하였습니다.");
+		}
 	}
 };
 
@@ -75,7 +99,15 @@ r.on('line', function (line) {
 			console.log('잘못된 명령입니다.');
 		}
 	} else if (command[0] == 'update') {
-		console.log('update');
+		if (command[2] == 'doing') {
+			tasks.updateToDoing(command[1]);
+			tasks.showState();
+		} else if (command[2] == 'done') {
+			tasks.updateToDone(command[1]);
+			tasks.showState();
+		} else {
+			console.log('잘못된 명령입니다.');
+		}
 	} else {
 		console.log('잘못된 명령입니다.');
 	}
